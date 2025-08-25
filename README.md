@@ -122,7 +122,7 @@ docker-compose up --build -d
 SERVER_PORT=8080
 
 # Database Configuration (PostgreSQL)
-DB_HOST=news-api-db
+DB_HOST=postgres
 DB_PORT=5432
 DB_USER=user
 DB_PASSWORD=password
@@ -134,8 +134,8 @@ JWT_SECRET=supersecret
 JWT_EXPIRATION_HOURS=1
 
 # Redis Configuration
-REDIS_ADDR=news-api-redis:6379
-REDIS_USERNAME=
+REDIS_ADDR=redis:6379
+REDIS_USERNAME=default
 REDIS_PASSWORD=
 
 # Logger
