@@ -96,6 +96,13 @@ func (s *AuthService) SaveRefreshToken(userID int, refreshToken string) error {
 	}
 	return nil
 }
+func (s *AuthService) Logout(ctx context.Context, userID int) error {
+	ctx, cancel := context.WithTimeout(ctx, contextTimeout)
+	defer cancel()
+
+	key := s.getRefreshTokenKey(userID)
+	return s.redis.Del(ctx, key).Err()
+}
 
 func (s *AuthService) getRefreshTokenKey(userID int) string {
 	return "refresh_token:" + strconv.Itoa(userID)

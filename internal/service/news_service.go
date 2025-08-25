@@ -78,6 +78,11 @@ func (s *NewsService) UpdateNews(ctx context.Context, actor models.Actor, n *mod
 		return errors2.ErrNotFound
 	}
 
+	if existing.AuthorID != actor.UserID {
+		logger.Log.Warn("Update news forbidden: not an author")
+		return errors2.ErrForbidden
+	}
+
 	if err := s.repo.Update(n); err != nil {
 		logger.Log.Error("Update news failed", "error", err, "news_id", n.ID)
 		return err

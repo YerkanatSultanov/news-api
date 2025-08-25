@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"github.com/pressly/goose/v3"
 	"log/slog"
 	"news-api/internal/config"
 	"news-api/pkg/logger"
@@ -14,15 +15,15 @@ import (
 var DB *sql.DB
 
 func InitDB() {
-	dbConfig := config.AppConfig.Database
+	dbConfig := config.LoadConfig()
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		dbConfig.Host, dbConfig.Port, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.SSLMode,
+		dbConfig.Database.Host, dbConfig.Database.Port, dbConfig.Database.User, dbConfig.Database.Password, dbConfig.Database.DBName, dbConfig.Database.SSLMode,
 	)
 
 	logger.Log.Info("Connecting to News-api database...",
-		slog.String("host", dbConfig.Host),
-		slog.String("dbname", dbConfig.DBName),
+		slog.String("host", dbConfig.Database.Host),
+		slog.String("dbname", dbConfig.Database.DBName),
 	)
 
 	var err error
@@ -50,4 +51,11 @@ func InitDB() {
 	}
 
 	logger.Log.Info("Connected to News-api database successfully")
+
+	if err := goose.Up(DB, "migrations"); err != nil {
+		logger.Log.Error("Failed to run migrations",
+			slog.String("error", err.Error()))
+		panic(err)
+	}
+	logger.Log.Info("Migrations applied successfully")
 }

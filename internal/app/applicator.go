@@ -27,6 +27,9 @@ type App struct {
 	AuthRepo    *repository.UserRepository
 	AuthService *service.AuthService
 	AuthHandler *handlers.AuthHandler
+	NewsRepo    *repository.NewsRepository
+	NewsService *service.NewsService
+	NewsHandler *handlers.NewsHandler
 	JWTManager  *token.JWTManager
 	RedisClient *redis.Client
 	server      *http.Server
@@ -34,7 +37,7 @@ type App struct {
 
 func NewApp() *App {
 	config.LoadConfig()
-	cfg := config.AppConfig
+	cfg := config.LoadConfig()
 
 	logger.InitLogger(cfg.Log.Level)
 	logger.Log.Info("Logger initialized", "level", cfg.Log.Level)
@@ -55,20 +58,27 @@ func NewApp() *App {
 	authService := service.NewAuthService(authRepo, client, jwtManager)
 	authHandler := handlers.NewAuthHandler(authService)
 
+	newsRepo := repository.NewNewsRepository(database.DB)
+	newsService := service.NewNewsService(newsRepo)
+	newsHandler := handlers.NewNewsHandler(newsService)
+
 	return &App{
 		DB:          database.DB,
 		AuthRepo:    authRepo,
 		AuthService: authService,
 		AuthHandler: authHandler,
+		NewsRepo:    newsRepo,
+		NewsService: newsService,
+		NewsHandler: newsHandler,
 		JWTManager:  jwtManager,
 		RedisClient: client,
 	}
 }
 
 func (a *App) Run() {
-	cfg := config.AppConfig
+	cfg := config.LoadConfig()
 
-	routers := router.NewRouter(a.AuthHandler)
+	routers := router.NewRouter(a.AuthHandler, a.NewsHandler, a.JWTManager)
 	a.server = &http.Server{
 		Addr:    ":" + cfg.Server.Port,
 		Handler: routers,

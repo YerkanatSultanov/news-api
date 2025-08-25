@@ -9,6 +9,7 @@ import (
 type AuthService interface {
 	Register(ctx context.Context, input auth.RegisterUserInput) error
 	Login(ctx context.Context, input auth.LoginUserInput) (string, string, error)
+	Logout(ctx context.Context, userID int) error
 }
 
 type NewsService interface {

@@ -44,14 +44,10 @@ type JWTConfig struct {
 	ExpirationHours int
 }
 
-var AppConfig Config
+func LoadConfig() Config {
+	_ = godotenv.Load(".env")
 
-func LoadConfig() {
-	if err := godotenv.Load("./.env"); err != nil {
-		slog.Warn("No .env file found, loading from environment")
-	}
-
-	AppConfig = Config{
+	cfg := Config{
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "8080"),
 		},
@@ -76,6 +72,8 @@ func LoadConfig() {
 			Password: getEnv("REDIS_PASSWORD", ""),
 		},
 	}
+
+	return cfg
 }
 
 func getEnv(key, defaultValue string) string {
@@ -90,7 +88,9 @@ func getEnvInt(key string, defaultValue int) int {
 		if intValue, err := strconv.Atoi(value); err == nil {
 			return intValue
 		}
-		slog.Warn("Invalid int value for env", slog.String("key", key), slog.String("value", value))
+		slog.Warn("Invalid int value for env",
+			slog.String("key", key),
+			slog.String("value", value))
 	}
 	return defaultValue
 }

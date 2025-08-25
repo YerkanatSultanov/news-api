@@ -1,0 +1,361 @@
+definitions:
+  auth.LoginUserInput:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.RegisterUserInput:
+    properties:
+      avatar:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+  auth.Response:
+    properties:
+      message:
+        type: string
+    type: object
+  auth.TokensResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  errors.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  models.News:
+    properties:
+      author_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  news.News:
+    properties:
+      description:
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - description
+    - title
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Simple REST API for managing news with authentication
+  title: News API
+  version: "1.0"
+paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokensResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth.Response'
+      summary: Login user
+      tags:
+      - auth
+  /api/logout:
+    post:
+      description: Invalidate refresh token for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth.Response'
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - auth
+  /api/news:
+    get:
+      description: Returns list of news with pagination, filtering and search
+      parameters:
+      - description: Limit (default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
+      - description: Filter by author id
+        in: query
+        name: author_id
+        type: integer
+      - description: Search by title
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.News'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: Get news list
+      tags:
+      - news
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: News input
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/news.News'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/news.News'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create news
+      tags:
+      - news
+  /api/news/{id}:
+    delete:
+      parameters:
+      - description: News ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete news
+      tags:
+      - news
+    get:
+      parameters:
+      - description: News ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.News'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: Get news by ID
+      tags:
+      - news
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: News ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: News input
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/news.News'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.News'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update news
+      tags:
+      - news
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account
+      parameters:
+      - description: User registration data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterUserInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.Response'
+      summary: Register new user
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
